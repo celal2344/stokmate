@@ -87,8 +87,10 @@ Tüm tarihler **UTC** ve ISO 8601 biçimindedir: `2026-07-17T12:39:31.9060307Z`
 | `GET` | `/auth/me` | Bearer |
 | `GET` | `/products` | Bearer |
 | `GET` | `/products/stats` | Bearer |
+| `GET` | `/products/{id}` | Bearer |
 | `POST` | `/products` | Bearer |
 | `PUT` | `/products/{id}` | Bearer |
+| `PATCH` | `/products/{id}` | Bearer |
 | `PATCH` | `/products/{id}/stock` | Bearer |
 | `DELETE` | `/products/{id}` | Bearer |
 | `GET` | `/categories` | Bearer |
@@ -541,3 +543,85 @@ Markalar ada göre sıralı döner. Toplam 12 marka vardır.
 ```
 
 Tedarikçiler ada göre sıralı döner. Toplam 6 tedarikçi vardır.
+
+---
+
+## 6. Yeni Eklenenler
+
+### 6.1 `GET /products/{id}`
+
+Ürünün tedarikçi, maliyet fiyatı, açıklama ve oluşturulma zamanı dahil tüm
+alanlarını döner. Sıkıştırılmış `GET /products` liste öğesini değiştirmez.
+
+**Path parametresi**
+
+| Parametre | Tip |
+| --- | --- |
+| `id` | int |
+
+**Yanıt — `200 OK`**
+
+```json
+{
+  "id": 1,
+  "name": "Coca-Cola 1 L Pet",
+  "sku": "ICE-1001",
+  "barcode": "8690637010011",
+  "imageUrl": "https://picsum.photos/seed/1/400/400",
+  "categoryId": 1,
+  "categoryName": "İçecek",
+  "brandId": 6,
+  "brandName": "Coca-Cola",
+  "supplierId": 1,
+  "supplierName": "Anadolu Gıda Dağıtım A.Ş.",
+  "price": 3950,
+  "costPrice": 2850,
+  "stock": 240,
+  "minStock": 40,
+  "unit": 1,
+  "status": 1,
+  "description": "1 litre pet şişe.",
+  "isFeatured": true,
+  "createdAt": "2026-07-17T12:37:56.2270349Z",
+  "updatedAt": "2026-07-17T12:37:56.2270349Z"
+}
+```
+
+| Kod | Durum |
+| --- | --- |
+| `404` | Ürün bulunamadı |
+
+---
+
+### 6.2 `PATCH /products/{id}`
+
+Yalnızca verilen alanları günceller. `name`, `price`, `stock` veya `status`
+alanlarından en az biri zorunludur; gönderilmeyen alanlar mevcut değerlerini
+korur. `updatedAt` sunucu tarafından güncellenir.
+
+**İstek gövdesi**
+
+| Alan | Tip | Açıklama |
+| --- | --- | --- |
+| `name` | string | Gönderildiğinde boş olamaz |
+| `price` | int | **KURUŞ**; negatif olamaz |
+| `stock` | int | Negatif olamaz |
+| `status` | int | `1` \| `2` \| `3` |
+
+```json
+{
+  "name": "Coca-Cola 1 L Pet",
+  "price": 4250,
+  "stock": 200,
+  "status": 1
+}
+```
+
+**Yanıt — `200 OK`**
+
+Tam `GET /products/{id}` kaydını döner.
+
+| Kod | Durum |
+| --- | --- |
+| `400` | Boş istek, geçersiz gönderilen alan veya negatif fiyat/stok |
+| `404` | Ürün bulunamadı |

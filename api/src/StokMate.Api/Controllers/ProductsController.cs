@@ -27,6 +27,11 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<ProductStatsDto>> GetStats()
         => await _productService.GetStatsAsync();
 
+    /// <summary>Yeni eklenen: Ürünün tüm alanlarını detay olarak döndürür.</summary>
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<ProductDetailDto>> GetDetail(int id)
+        => await _productService.GetDetailAsync(id);
+
     /// <summary>Yeni ürün oluşturur.</summary>
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create([FromBody] CreateProductRequest request)
@@ -36,6 +41,11 @@ public class ProductsController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ProductDto>> Update(int id, [FromBody] UpdateProductRequest request)
         => await _productService.UpdateAsync(id, request);
+
+    /// <summary>Yeni eklenen: Yalnızca verilen ürün alanlarını günceller.</summary>
+    [HttpPatch("{id:int}")]
+    public async Task<ActionResult<ProductDetailDto>> UpdateFields(int id, [FromBody] UpdateProductFieldsRequest request)
+        => await _productService.UpdateFieldsAsync(id, request);
 
     /// <summary>Yalnızca stok miktarını günceller.</summary>
     [HttpPatch("{id:int}/stock")]

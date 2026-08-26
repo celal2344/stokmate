@@ -76,6 +76,10 @@ public class ProductService
         LowStock = await _db.Products.CountAsync(p => p.Stock <= p.MinStock && p.Stock > 0)
     };
 
+    // Yeni eklenen: Liste DTO'sundan ayri olarak tum urun kaydini yukler.
+    public async Task<ProductDetailDto> GetDetailAsync(int id)
+        => await LoadDetailDtoAsync(id);
+
     public async Task<ProductDto> CreateAsync(CreateProductRequest request)
     {
         ValidateFields(request.Name, request.Sku, request.Price, request.CostPrice,
@@ -146,6 +150,62 @@ public class ProductService
         return await LoadDtoAsync(product.Id);
     }
 
+    // Yeni eklenen: Sadece istemcinin gonderdigi duzenlenebilir alanlari uygular.
+    public async Task<ProductDetailDto> UpdateFieldsAsync(int id, UpdateProductFieldsRequest request)
+    {
+        if (request.Name is null && request.Price is null && request.Stock is null && request.Status is null)
+        {
+            throw new ValidationException("En az bir alan güncellenmelidir.");
+        }
+
+        var product = await FindAsync(id);
+
+        if (request.Name is not null)
+        {
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                throw new ValidationException("Ürün adı zorunludur.");
+            }
+
+            product.Name = request.Name.Trim();
+        }
+
+        if (request.Price is not null)
+        {
+            if (request.Price < 0)
+            {
+                throw new ValidationException("Fiyat negatif olamaz.");
+            }
+
+            product.Price = request.Price.Value;
+        }
+
+        if (request.Stock is not null)
+        {
+            if (request.Stock < 0)
+            {
+                throw new ValidationException("Stok negatif olamaz.");
+            }
+
+            product.Stock = request.Stock.Value;
+        }
+
+        if (request.Status is not null)
+        {
+            if (!Enum.IsDefined(request.Status.Value))
+            {
+                throw new ValidationException("Geçersiz durum değeri.");
+            }
+
+            product.Status = request.Status.Value;
+        }
+
+        product.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return await LoadDetailDtoAsync(product.Id);
+    }
+
     public async Task<ProductDto> UpdateStockAsync(int id, UpdateStockRequest request)
     {
         if (request.Stock < 0)
@@ -184,6 +244,18 @@ public class ProductService
             .FirstAsync(p => p.Id == id);
 
         return ToDto(product);
+    }
+
+    private async Task<ProductDetailDto> LoadDetailDtoAsync(int id)
+    {
+        var product = await _db.Products
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .Include(p => p.Supplier)
+            .FirstOrDefaultAsync(p => p.Id == id)
+            ?? throw new NotFoundException($"{id} numaralı ürün bulunamadı.");
+
+        return ToDetailDto(product);
     }
 
     /// <summary>sort=name|price|stock|updatedAt, dir=asc|desc. Tanınmayan değerde ada göre sıralanır.</summary>
@@ -296,6 +368,31 @@ public class ProductService
         Unit = p.Unit,
         Status = p.Status,
         IsFeatured = p.IsFeatured,
+        UpdatedAt = p.UpdatedAt
+    };
+
+    private static ProductDetailDto ToDetailDto(Product p) => new()
+    {
+        Id = p.Id,
+        Name = p.Name,
+        Sku = p.Sku,
+        Barcode = p.Barcode,
+        ImageUrl = p.ImageUrl,
+        CategoryId = p.CategoryId,
+        CategoryName = p.Category?.Name ?? "",
+        BrandId = p.BrandId,
+        BrandName = p.Brand?.Name ?? "",
+        SupplierId = p.SupplierId,
+        SupplierName = p.Supplier?.Name ?? "",
+        Price = p.Price,
+        CostPrice = p.CostPrice,
+        Stock = p.Stock,
+        MinStock = p.MinStock,
+        Unit = p.Unit,
+        Status = p.Status,
+        Description = p.Description,
+        IsFeatured = p.IsFeatured,
+        CreatedAt = p.CreatedAt,
         UpdatedAt = p.UpdatedAt
     };
 }

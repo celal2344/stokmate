@@ -30,6 +30,36 @@ public class ProductDto
     public DateTime UpdatedAt { get; set; }
 }
 
+/// <summary>Yeni eklenen: Ürünün tüm alanlarını içeren detay yanıtı. Fiyatlar KURUŞ cinsindendir.</summary>
+public class ProductDetailDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Sku { get; set; } = "";
+    public string Barcode { get; set; } = "";
+    public string ImageUrl { get; set; } = "";
+
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = "";
+
+    public int BrandId { get; set; }
+    public string BrandName { get; set; } = "";
+
+    public int SupplierId { get; set; }
+    public string SupplierName { get; set; } = "";
+
+    public int Price { get; set; }
+    public int CostPrice { get; set; }
+    public int Stock { get; set; }
+    public int MinStock { get; set; }
+    public ProductUnit Unit { get; set; }
+    public ProductStatus Status { get; set; }
+    public string Description { get; set; } = "";
+    public bool IsFeatured { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
 /// <summary>GET /products sorgu parametreleri.</summary>
 public class ProductQuery
 {
@@ -111,6 +141,15 @@ public class UpdateProductRequest
 public class UpdateStockRequest
 {
     public int Stock { get; set; }
+}
+
+/// <summary>Yeni eklenen: PATCH /products/{id} gövdesi. Yalnızca verilen alanlar güncellenir.</summary>
+public class UpdateProductFieldsRequest
+{
+    public string? Name { get; set; }
+    public int? Price { get; set; }
+    public int? Stock { get; set; }
+    public ProductStatus? Status { get; set; }
 }
 
 /// <summary>GET /products/stats yanıtı.</summary>
