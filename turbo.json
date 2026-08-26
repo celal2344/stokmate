@@ -9,7 +9,10 @@
       "dependsOn": ["^lint"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": ["^typecheck", "generate"]
+    },
+    "generate": {
+      "outputs": ["src/generated/**"]
     },
     "dev": {
       "cache": false,

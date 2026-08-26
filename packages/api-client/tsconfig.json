@@ -1,0 +1,7 @@
+{
+  "extends": "@stokmate/typescript-config/react.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

@@ -10,6 +10,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@stokmate/api-client": "workspace:*",
+    "@stokmate/domain": "workspace:*",
+    "@stokmate/i18n": "workspace:*",
     "@vitejs/plugin-react": "5.0.2",
     "react": "19.1.1",
     "react-dom": "19.1.1",

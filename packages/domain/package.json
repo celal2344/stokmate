@@ -1,0 +1,23 @@
+{
+  "name": "@stokmate/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@stokmate/eslint-config": "workspace:*",
+    "@stokmate/typescript-config": "workspace:*",
+    "eslint": "9.35.0",
+    "typescript": "5.9.2"
+  }
+}

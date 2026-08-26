@@ -11,6 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@stokmate/api-client": "workspace:*",
+    "@stokmate/domain": "workspace:*",
+    "@stokmate/i18n": "workspace:*",
     "@expo/metro-runtime": "6.1.2",
     "expo": "54.0.1",
     "react": "19.1.0",
