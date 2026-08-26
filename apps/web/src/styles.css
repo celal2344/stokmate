@@ -1,14 +1,32 @@
-:root {
-  color-scheme: light dark;
-  font-family: system-ui, sans-serif;
-}
-
-body {
-  margin: 0;
-}
-
-main {
-  margin: 0 auto;
-  max-width: 72rem;
-  padding: 2rem;
-}
+:root { color: #172033; background: #f4f7fb; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 20rem; }
+button, input, select { font: inherit; }
+button { cursor: pointer; border: 0; border-radius: .5rem; background: #155eef; color: #fff; padding: .65rem .9rem; font-weight: 650; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+button.secondary { background: #e9eef8; color: #273550; }
+button.active-page { background: #155eef; }
+label { display: grid; gap: .35rem; color: #34415c; font-size: .82rem; font-weight: 650; }
+input, select { width: 100%; border: 1px solid #cbd5e1; border-radius: .45rem; background: #fff; color: #172033; padding: .62rem .7rem; }
+input:focus, select:focus { border-color: #155eef; outline: 3px solid #dbeafe; }
+.centered-state, .login-page { display: grid; min-height: 100vh; place-items: center; padding: 1.5rem; }
+.login-card { display: grid; width: min(100%, 25rem); gap: 1rem; border: 1px solid #dce3ef; border-radius: 1rem; background: #fff; padding: 2rem; box-shadow: 0 1rem 3rem #14213d14; }
+.login-card h1 { margin: 0 0 .5rem; font-size: 1.55rem; }
+.eyebrow { margin: 0; color: #155eef; font-size: .78rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.app-shell { max-width: 90rem; margin: 0 auto; padding: clamp(1rem, 3vw, 2.5rem); }
+.app-header, .account, .pagination, .page-buttons { display: flex; align-items: center; gap: .75rem; }
+.app-header { justify-content: space-between; margin-bottom: 1.5rem; }
+.app-header h1 { margin: .15rem 0 0; font-size: clamp(1.6rem, 3vw, 2.25rem); }
+.account { color: #53627d; font-size: .9rem; }
+.kpi-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.kpi { display: grid; gap: .4rem; border-left: .3rem solid #155eef; border-radius: .65rem; background: #fff; padding: 1rem 1.2rem; box-shadow: 0 .2rem .7rem #14213d0a; }
+.kpi.warning { border-color: #d97706; }.kpi.danger { border-color: #dc2626; }.kpi span { color: #60708c; font-size: .85rem; }.kpi strong { font-size: 1.65rem; }
+.product-panel { border: 1px solid #dce3ef; border-radius: .8rem; background: #fff; overflow: hidden; }
+.toolbar { display: grid; grid-template-columns: minmax(13rem, 2fr) repeat(5, minmax(7rem, 1fr)); gap: .75rem; padding: 1rem; border-bottom: 1px solid #e5eaf3; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; min-width: 56rem; border-collapse: collapse; text-align: left; } th, td { border-bottom: 1px solid #e7edf6; padding: .85rem 1rem; vertical-align: middle; } th { color: #60708c; font-size: .75rem; letter-spacing: .03em; text-transform: uppercase; } td { font-size: .9rem; } small { display: block; margin-top: .2rem; color: #72809a; font-size: .77rem; }
+.identity { display: flex; min-width: 14rem; align-items: center; gap: .7rem; }.identity img, .product-image-placeholder { width: 2.4rem; height: 2.4rem; flex: 0 0 auto; border-radius: .45rem; background: #e8edf7; object-fit: cover; }.low-stock { color: #b45309; font-weight: 750; }
+.status { display: inline-block; border-radius: 999px; padding: .25rem .55rem; background: #e8f7ef; color: #177245; font-size: .75rem; font-weight: 750; }.status-2 { background: #fff4df; color: #9a5c00; }.status-3 { background: #feecee; color: #b4233b; }
+.state { padding: 3rem 1rem; color: #60708c; text-align: center; }.error { color: #b4233b; }.pagination { justify-content: space-between; padding: 1rem; color: #60708c; font-size: .85rem; }.pagination label { display: flex; align-items: center; }.pagination select { width: auto; }.page-buttons { flex-wrap: wrap; }
+@media (max-width: 1000px) { .toolbar { grid-template-columns: repeat(3, minmax(0, 1fr)); }.search-field { grid-column: span 3; } }
+@media (max-width: 720px) { .app-header, .pagination { align-items: flex-start; flex-direction: column; }.account { width: 100%; justify-content: space-between; }.kpi-grid, .toolbar { grid-template-columns: 1fr; }.search-field { grid-column: auto; }.pagination { gap: 1rem; }.page-buttons { width: 100%; } }
