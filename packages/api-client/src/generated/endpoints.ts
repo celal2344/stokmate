@@ -5,24 +5,26 @@
  * Stok yönetimi case study API'si. Fiyat alanları KURUŞ cinsindendir (1999 = 19,99 TL).
  * OpenAPI spec version: v1
  */
-import type {
+import {
   AuthResponse,
+  ProductDetailDto,
+  ProductDto,
+  ProductDtoPagedResult,
+  ProductStatsDto,
+  UserDto
+} from './models';
+import type {
   BrandDto,
   CategoryDto,
   CreateProductRequest,
   GetProductsParams,
   LoginRequest,
   LogoutRequest,
-  ProductDetailDto,
-  ProductDto,
-  ProductDtoPagedResult,
-  ProductStatsDto,
   RefreshRequest,
   SupplierDto,
   UpdateProductFieldsRequest,
   UpdateProductRequest,
-  UpdateStockRequest,
-  UserDto
+  UpdateStockRequest
 } from './models';
 
 export type postAuthLoginResponse200TextPlain = {
@@ -56,7 +58,7 @@ export const getPostAuthLoginUrl = () => {
 /**
  * @summary E-posta ve şifre ile giriş yapar, anahtar çifti döner.
  */
-export const postAuthLogin = async (loginRequest?: LoginRequest, options?: RequestInit): Promise<postAuthLoginResponseSuccess> => {
+export const postAuthLogin = async (loginRequest?: LoginRequest, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<postAuthLoginResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -64,7 +66,7 @@ export const postAuthLogin = async (loginRequest?: LoginRequest, options?: Reque
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-const res = await fetch(getPostAuthLoginUrl(),
+const res = await (fetchFn ?? fetch)(getPostAuthLoginUrl(),
   {
     ...options,
     method: 'POST',
@@ -83,7 +85,8 @@ const res = await fetch(getPostAuthLoginUrl(),
     err.status = res.status;
     throw err;
   }
-  const data: postAuthLoginResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? AuthResponse.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as postAuthLoginResponseSuccess
 }
 
@@ -120,7 +123,7 @@ export const getPostAuthRefreshUrl = () => {
 /**
  * @summary Yenileme anahtarını yeni bir anahtar çiftiyle değiştirir.
  */
-export const postAuthRefresh = async (refreshRequest?: RefreshRequest, options?: RequestInit): Promise<postAuthRefreshResponseSuccess> => {
+export const postAuthRefresh = async (refreshRequest?: RefreshRequest, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<postAuthRefreshResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -128,7 +131,7 @@ export const postAuthRefresh = async (refreshRequest?: RefreshRequest, options?:
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-const res = await fetch(getPostAuthRefreshUrl(),
+const res = await (fetchFn ?? fetch)(getPostAuthRefreshUrl(),
   {
     ...options,
     method: 'POST',
@@ -147,7 +150,8 @@ const res = await fetch(getPostAuthRefreshUrl(),
     err.status = res.status;
     throw err;
   }
-  const data: postAuthRefreshResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? AuthResponse.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as postAuthRefreshResponseSuccess
 }
 
@@ -174,7 +178,7 @@ export const getPostAuthLogoutUrl = () => {
 /**
  * @summary Oturumu kapatır ve yenileme anahtarını iptal eder.
  */
-export const postAuthLogout = async (logoutRequest?: LogoutRequest, options?: RequestInit): Promise<postAuthLogoutResponseSuccess> => {
+export const postAuthLogout = async (logoutRequest?: LogoutRequest, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<postAuthLogoutResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -182,7 +186,7 @@ export const postAuthLogout = async (logoutRequest?: LogoutRequest, options?: Re
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-const res = await fetch(getPostAuthLogoutUrl(),
+const res = await (fetchFn ?? fetch)(getPostAuthLogoutUrl(),
   {
     ...options,
     method: 'POST',
@@ -238,9 +242,9 @@ export const getGetAuthMeUrl = () => {
 /**
  * @summary Oturum açmış kullanıcının bilgilerini döner.
  */
-export const getAuthMe = async ( options?: RequestInit): Promise<getAuthMeResponseSuccess> => {
+export const getAuthMe = async ( options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<getAuthMeResponseSuccess> => {
 
-  const res = await fetch(getGetAuthMeUrl(),
+  const res = await (fetchFn ?? fetch)(getGetAuthMeUrl(),
   {
     ...options,
     method: 'GET'
@@ -259,7 +263,8 @@ export const getAuthMe = async ( options?: RequestInit): Promise<getAuthMeRespon
     err.status = res.status;
     throw err;
   }
-  const data: getAuthMeResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? UserDto.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as getAuthMeResponseSuccess
 }
 
@@ -296,9 +301,9 @@ export const getGetCategoriesUrl = () => {
 /**
  * @summary Kategori listesi.
  */
-export const getCategories = async ( options?: RequestInit): Promise<getCategoriesResponseSuccess> => {
+export const getCategories = async ( options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<getCategoriesResponseSuccess> => {
 
-  const res = await fetch(getGetCategoriesUrl(),
+  const res = await (fetchFn ?? fetch)(getGetCategoriesUrl(),
   {
     ...options,
     method: 'GET'
@@ -354,9 +359,9 @@ export const getGetBrandsUrl = () => {
 /**
  * @summary Marka listesi.
  */
-export const getBrands = async ( options?: RequestInit): Promise<getBrandsResponseSuccess> => {
+export const getBrands = async ( options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<getBrandsResponseSuccess> => {
 
-  const res = await fetch(getGetBrandsUrl(),
+  const res = await (fetchFn ?? fetch)(getGetBrandsUrl(),
   {
     ...options,
     method: 'GET'
@@ -412,9 +417,9 @@ export const getGetSuppliersUrl = () => {
 /**
  * @summary Tedarikçi listesi.
  */
-export const getSuppliers = async ( options?: RequestInit): Promise<getSuppliersResponseSuccess> => {
+export const getSuppliers = async ( options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<getSuppliersResponseSuccess> => {
 
-  const res = await fetch(getGetSuppliersUrl(),
+  const res = await (fetchFn ?? fetch)(getGetSuppliersUrl(),
   {
     ...options,
     method: 'GET'
@@ -477,9 +482,9 @@ export const getGetProductsUrl = (params?: GetProductsParams,) => {
 /**
  * @summary Filtrelenebilir, sıralanabilir ve sayfalanabilir ürün listesi.
  */
-export const getProducts = async (params?: GetProductsParams, options?: RequestInit): Promise<getProductsResponseSuccess> => {
+export const getProducts = async (params?: GetProductsParams, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<getProductsResponseSuccess> => {
 
-  const res = await fetch(getGetProductsUrl(params),
+  const res = await (fetchFn ?? fetch)(getGetProductsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -498,7 +503,8 @@ export const getProducts = async (params?: GetProductsParams, options?: RequestI
     err.status = res.status;
     throw err;
   }
-  const data: getProductsResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? ProductDtoPagedResult.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as getProductsResponseSuccess
 }
 
@@ -535,7 +541,7 @@ export const getPostProductsUrl = () => {
 /**
  * @summary Yeni ürün oluşturur.
  */
-export const postProducts = async (createProductRequest?: CreateProductRequest, options?: RequestInit): Promise<postProductsResponseSuccess> => {
+export const postProducts = async (createProductRequest?: CreateProductRequest, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<postProductsResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -543,7 +549,7 @@ export const postProducts = async (createProductRequest?: CreateProductRequest, 
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-const res = await fetch(getPostProductsUrl(),
+const res = await (fetchFn ?? fetch)(getPostProductsUrl(),
   {
     ...options,
     method: 'POST',
@@ -562,7 +568,8 @@ const res = await fetch(getPostProductsUrl(),
     err.status = res.status;
     throw err;
   }
-  const data: postProductsResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? ProductDto.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as postProductsResponseSuccess
 }
 
@@ -599,9 +606,9 @@ export const getGetProductsStatsUrl = () => {
 /**
  * @summary Stok durumu özeti.
  */
-export const getProductsStats = async ( options?: RequestInit): Promise<getProductsStatsResponseSuccess> => {
+export const getProductsStats = async ( options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<getProductsStatsResponseSuccess> => {
 
-  const res = await fetch(getGetProductsStatsUrl(),
+  const res = await (fetchFn ?? fetch)(getGetProductsStatsUrl(),
   {
     ...options,
     method: 'GET'
@@ -620,7 +627,8 @@ export const getProductsStats = async ( options?: RequestInit): Promise<getProdu
     err.status = res.status;
     throw err;
   }
-  const data: getProductsStatsResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? ProductStatsDto.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as getProductsStatsResponseSuccess
 }
 
@@ -657,9 +665,9 @@ export const getGetProductsIdUrl = (id: number,) => {
 /**
  * @summary Yeni eklenen: Ürünün tüm alanlarını detay olarak döndürür.
  */
-export const getProductsId = async (id: number, options?: RequestInit): Promise<getProductsIdResponseSuccess> => {
+export const getProductsId = async (id: number, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<getProductsIdResponseSuccess> => {
 
-  const res = await fetch(getGetProductsIdUrl(id),
+  const res = await (fetchFn ?? fetch)(getGetProductsIdUrl(id),
   {
     ...options,
     method: 'GET'
@@ -678,7 +686,8 @@ export const getProductsId = async (id: number, options?: RequestInit): Promise<
     err.status = res.status;
     throw err;
   }
-  const data: getProductsIdResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? ProductDetailDto.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as getProductsIdResponseSuccess
 }
 
@@ -716,7 +725,7 @@ export const getPutProductsIdUrl = (id: number,) => {
  * @summary Ürünün tüm alanlarını günceller.
  */
 export const putProductsId = async (id: number,
-    updateProductRequest?: UpdateProductRequest, options?: RequestInit): Promise<putProductsIdResponseSuccess> => {
+    updateProductRequest?: UpdateProductRequest, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<putProductsIdResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -724,7 +733,7 @@ export const putProductsId = async (id: number,
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-const res = await fetch(getPutProductsIdUrl(id),
+const res = await (fetchFn ?? fetch)(getPutProductsIdUrl(id),
   {
     ...options,
     method: 'PUT',
@@ -743,7 +752,8 @@ const res = await fetch(getPutProductsIdUrl(id),
     err.status = res.status;
     throw err;
   }
-  const data: putProductsIdResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? ProductDto.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as putProductsIdResponseSuccess
 }
 
@@ -781,7 +791,7 @@ export const getPatchProductsIdUrl = (id: number,) => {
  * @summary Yeni eklenen: Yalnızca verilen ürün alanlarını günceller.
  */
 export const patchProductsId = async (id: number,
-    updateProductFieldsRequest?: UpdateProductFieldsRequest, options?: RequestInit): Promise<patchProductsIdResponseSuccess> => {
+    updateProductFieldsRequest?: UpdateProductFieldsRequest, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<patchProductsIdResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -789,7 +799,7 @@ export const patchProductsId = async (id: number,
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-const res = await fetch(getPatchProductsIdUrl(id),
+const res = await (fetchFn ?? fetch)(getPatchProductsIdUrl(id),
   {
     ...options,
     method: 'PATCH',
@@ -808,7 +818,8 @@ const res = await fetch(getPatchProductsIdUrl(id),
     err.status = res.status;
     throw err;
   }
-  const data: patchProductsIdResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? ProductDetailDto.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as patchProductsIdResponseSuccess
 }
 
@@ -835,9 +846,9 @@ export const getDeleteProductsIdUrl = (id: number,) => {
 /**
  * @summary Ürünü siler.
  */
-export const deleteProductsId = async (id: number, options?: RequestInit): Promise<deleteProductsIdResponseSuccess> => {
+export const deleteProductsId = async (id: number, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<deleteProductsIdResponseSuccess> => {
 
-  const res = await fetch(getDeleteProductsIdUrl(id),
+  const res = await (fetchFn ?? fetch)(getDeleteProductsIdUrl(id),
   {
     ...options,
     method: 'DELETE'
@@ -894,7 +905,7 @@ export const getPatchProductsIdStockUrl = (id: number,) => {
  * @summary Yalnızca stok miktarını günceller.
  */
 export const patchProductsIdStock = async (id: number,
-    updateStockRequest?: UpdateStockRequest, options?: RequestInit): Promise<patchProductsIdStockResponseSuccess> => {
+    updateStockRequest?: UpdateStockRequest, options?: RequestInit, fetchFn?: typeof globalThis.fetch): Promise<patchProductsIdStockResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -902,7 +913,7 @@ export const patchProductsIdStock = async (id: number,
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-const res = await fetch(getPatchProductsIdStockUrl(id),
+const res = await (fetchFn ?? fetch)(getPatchProductsIdStockUrl(id),
   {
     ...options,
     method: 'PATCH',
@@ -921,6 +932,7 @@ const res = await fetch(getPatchProductsIdStockUrl(id),
     err.status = res.status;
     throw err;
   }
-  const data: patchProductsIdStockResponseSuccess['data'] = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const parsedBody = body ? (contentType.includes('json') ? JSON.parse(body) : body) : {}
+  const data = contentType.includes('json') ? ProductDto.parse(parsedBody) : parsedBody
   return { data, status: res.status, headers: res.headers } as patchProductsIdStockResponseSuccess
 }

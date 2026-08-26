@@ -7,29 +7,19 @@ export default defineConfig({
     input: { target: input },
     output: {
       target: "./src/generated/endpoints.ts",
-      schemas: "./src/generated/models",
+      schemas: {
+        path: "./src/generated/models",
+        type: "zod"
+      },
       client: "fetch",
       mode: "single",
       clean: true,
       override: {
         fetch: {
           forceSuccessResponse: true,
-          includeHttpResponseReturnType: true
-        }
-      }
-    }
-  },
-  zod: {
-    input: { target: input },
-    output: {
-      target: "./src/generated/zod.ts",
-      client: "zod",
-      mode: "single",
-      override: {
-        zod: {
-          variant: "classic",
-          version: 4,
-          generateReusableSchemas: true
+          includeHttpResponseReturnType: true,
+          runtimeValidation: true,
+          useRuntimeFetcher: true
         }
       }
     }
