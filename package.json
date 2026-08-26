@@ -12,7 +12,9 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "generate": "turbo run generate"
+    "generate": "turbo run generate",
+    "smoke:api": "turbo run smoke:api --filter=@stokmate/smoke",
+    "smoke:contract": "turbo run smoke:contract --filter=@stokmate/smoke"
   },
   "devDependencies": {
     "pnpm": "10.17.1",

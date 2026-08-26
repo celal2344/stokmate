@@ -1,0 +1,10 @@
+{
+  "name": "@stokmate/smoke",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoke:api": "node api-smoke.mjs",
+    "smoke:contract": "node contract-smoke.mjs"
+  }
+}

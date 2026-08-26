@@ -14,6 +14,18 @@
     "generate": {
       "outputs": ["src/generated/**"]
     },
+    "smoke:api": {
+      "cache": false,
+      "env": [
+        "STOKMATE_API_BASE_URL",
+        "STOKMATE_TEST_EMAIL",
+        "STOKMATE_TEST_PASSWORD"
+      ]
+    },
+    "smoke:contract": {
+      "cache": false,
+      "env": ["STOKMATE_API_BASE_URL"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
