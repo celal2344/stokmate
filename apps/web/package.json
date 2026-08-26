@@ -10,12 +10,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tanstack/react-query": "5.102.2",
     "@stokmate/api-client": "workspace:*",
     "@stokmate/domain": "workspace:*",
     "@stokmate/i18n": "workspace:*",
     "@vitejs/plugin-react": "5.0.2",
     "react": "19.1.1",
     "react-dom": "19.1.1",
+    "react-router": "7.18.2",
     "vite": "7.1.5"
   },
   "devDependencies": {
