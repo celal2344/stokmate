@@ -1,4 +1,4 @@
 {
   "extends": "@stokmate/typescript-config/react-native.json",
-  "include": ["App.tsx", "index.ts"]
+  "include": ["app/**/*.ts", "app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "expo-env.d.ts"]
 }
