@@ -1,0 +1,6 @@
+node_modules/
+.turbo/
+dist/
+.expo/
+api/**/bin/
+api/**/obj/

@@ -1,0 +1,11 @@
+{
+  "name": "@stokmate/api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotnet run --project src/StokMate.Api",
+    "build": "dotnet build StokMate.sln --configuration Release",
+    "lint": "dotnet format StokMate.sln --verify-no-changes --no-restore",
+    "typecheck": "dotnet build StokMate.sln --configuration Release"
+  }
+}

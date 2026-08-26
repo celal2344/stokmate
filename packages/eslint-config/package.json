@@ -1,0 +1,17 @@
+{
+  "name": "@stokmate/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./base.js"
+  },
+  "dependencies": {
+    "@eslint/js": "9.35.0",
+    "globals": "16.3.0",
+    "typescript-eslint": "8.43.0"
+  },
+  "peerDependencies": {
+    "eslint": "^9.35.0"
+  }
+}
