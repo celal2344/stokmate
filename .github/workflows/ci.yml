@@ -1,7 +1,6 @@
 name: Validate API client contract
 
 on:
-  push:
   pull_request:
 
 permissions:
