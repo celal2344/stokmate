@@ -3,3 +3,12 @@ packages:
   - packages/*
   - tests/*
   - api
+
+# pnpm v11 defaults to a 24-hour publish-age gate. Keep the repository's
+# established lockfile behavior while still verifying frozen-lockfile integrity.
+minimumReleaseAge: 0
+
+# Required by the Vite and Expo toolchains. Keep all other dependency build
+# scripts blocked unless they are explicitly reviewed and added here.
+allowBuilds:
+  esbuild: true
