@@ -1,0 +1,67 @@
+name: Validate API client contract
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  api-client-contract:
+    name: Generate and validate API client
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STOKMATE_API_BASE_URL: http://127.0.0.1:5080
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v2
+        with:
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run API and contract smoke checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore api/StokMate.sln
+          dotnet build api/StokMate.sln --configuration Release --no-restore
+
+          dotnet run --project api/src/StokMate.Api/StokMate.Api.csproj --configuration Release --no-build --urls "$STOKMATE_API_BASE_URL" > api.log 2>&1 &
+          api_pid=$!
+          cleanup() {
+            kill "$api_pid" 2>/dev/null || true
+            wait "$api_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent "$STOKMATE_API_BASE_URL/swagger/v1/swagger.json" > /dev/null 2>&1; then
+              break
+            fi
+            if [[ "$attempt" == 30 ]]; then
+              cat api.log
+              echo "API readiness check timed out after 30 seconds." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+
+          pnpm smoke:api
+          pnpm smoke:contract
+          git diff --check
+          git diff --exit-code
