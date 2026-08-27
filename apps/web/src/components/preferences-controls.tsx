@@ -1,12 +1,37 @@
 import { useTranslation } from "react-i18next";
 import { usePreferences } from "../preferences";
+import { useProductEventsConnectionState } from "../product-events";
 import { Select } from "./ui/select";
 
 export function PreferencesControls() {
   const { i18n, t } = useTranslation();
   const { theme, setTheme } = usePreferences();
+  const connectionState = useProductEventsConnectionState();
+  const connectionKey =
+    connectionState === "connected"
+      ? "realtimeConnected"
+      : connectionState === "reconnecting"
+        ? "realtimeReconnecting"
+        : "realtimeDisconnected";
   return (
     <div className="flex flex-wrap items-end gap-2">
+      <span
+        className="mb-1 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
+        <span
+          aria-hidden="true"
+          className={
+            connectionState === "connected"
+              ? "size-1.5 rounded-full bg-primary"
+              : connectionState === "reconnecting"
+                ? "size-1.5 rounded-full bg-amber-500"
+                : "size-1.5 rounded-full bg-muted-foreground"
+          }
+        />
+        {t(connectionKey)}
+      </span>
       <label className="grid gap-1 text-xs font-medium text-muted-foreground">
         <span>{t("language")}</span>
         <Select

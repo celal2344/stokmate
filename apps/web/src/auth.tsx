@@ -50,7 +50,8 @@ export interface AuthContextValue {
   logout(): Promise<void>;
 }
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5080";
+export const apiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5080";
 
 type AuthSnapshot = Pick<
   AuthContextValue,
@@ -71,6 +72,9 @@ class BrowserAuthService {
   }
   get isAuthenticated() {
     return this.snapshot.isAuthenticated;
+  }
+  async getAccessToken() {
+    return (await browserTokenStore.get())?.accessToken ?? "";
   }
 
   constructor() {

@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using StokMate.Api.Auth;
 using StokMate.Api.Common;
 using StokMate.Api.Data;
+using StokMate.Api.Hubs;
 using StokMate.Api.Services;
 
 const string corsPolicyName = "StokMateCors";
@@ -27,6 +28,7 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<LookupService>();
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Model bağlama hataları da düz metin dönsün. AddControllers()'tan SONRA gelmeli ki
 // varsayılan ProblemDetails (JSON) üreticisinin üzerine yazsın.
@@ -104,6 +106,8 @@ app.UseSwaggerUI();
 
 app.UseRouting();
 app.UseCors(corsPolicyName);
+app.UseMiddleware<ProductHubAuthenticationMiddleware>();
 app.MapControllers();
+app.MapHub<ProductHub>(ProductHub.Path);
 
 app.Run();

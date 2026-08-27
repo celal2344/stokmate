@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { AuthProvider, useAuth } from "./auth";
 import { PreferencesProvider } from "./preferences";
+import { ProductEventsProvider } from "./product-events";
 import { router } from "./router";
 import "./i18n";
 import "./styles.css";
@@ -46,8 +47,10 @@ createRoot(root).render(
     <QueryClientProvider client={queryClient}>
       <PreferencesProvider>
         <AuthProvider>
-          <UnauthorizedRedirect />
-          <RouterProvider router={router} context={{ queryClient }} />
+          <ProductEventsProvider>
+            <UnauthorizedRedirect />
+            <RouterProvider router={router} context={{ queryClient }} />
+          </ProductEventsProvider>
         </AuthProvider>
       </PreferencesProvider>
     </QueryClientProvider>
