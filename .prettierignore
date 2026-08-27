@@ -1,0 +1,16 @@
+# Dependencies and package-manager output
+node_modules/
+pnpm-lock.yaml
+
+# Build, test, and platform output
+**/dist/
+**/build/
+**/coverage/
+**/.expo/
+**/.turbo/
+**/*.tsbuildinfo
+
+# Generated contracts and routing output
+packages/api-client/src/generated/
+packages/api-client/openapi/
+apps/web/src/routeTree.gen.ts

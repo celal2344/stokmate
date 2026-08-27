@@ -13,11 +13,15 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "generate": "turbo run generate",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "smoke:api": "turbo run smoke:api --filter=@stokmate/smoke",
     "smoke:contract": "turbo run smoke:contract --filter=@stokmate/smoke"
   },
   "devDependencies": {
     "pnpm": "10.17.1",
+    "prettier": "3.9.6",
+    "prettier-plugin-tailwindcss": "0.8.1",
     "turbo": "2.7.4"
   }
 }

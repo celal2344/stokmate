@@ -1,4 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import {
   createApiClient,
   getAuthMe,
@@ -9,6 +15,7 @@ import {
   type TokenStore,
   type UserDto,
 } from "@stokmate/api-client";
+import { i18n } from "./i18n";
 
 const tokenStorageKey = "stokmate.web.tokens";
 
@@ -26,11 +33,15 @@ const browserTokenStore: TokenStore = {
       return null;
     }
   },
-  async set(tokens) { window.localStorage.setItem(tokenStorageKey, JSON.stringify(tokens)); },
-  async clear() { window.localStorage.removeItem(tokenStorageKey); },
+  async set(tokens) {
+    window.localStorage.setItem(tokenStorageKey, JSON.stringify(tokens));
+  },
+  async clear() {
+    window.localStorage.removeItem(tokenStorageKey);
+  },
 };
 
-interface AuthContextValue {
+export interface AuthContextValue {
   apiClient: ApiClient;
   isRestoring: boolean;
   isAuthenticated: boolean;
@@ -39,57 +50,119 @@ interface AuthContextValue {
   logout(): Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5080";
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isRestoring, setIsRestoring] = useState(true);
-  const [user, setUser] = useState<UserDto>();
-  const handleUnauthorized = useCallback(() => { setUser(undefined); }, []);
-  const apiClient = useMemo(
-    () => createApiClient({ baseUrl: apiBaseUrl, tokenStore: browserTokenStore, onUnauthorized: handleUnauthorized }),
-    [handleUnauthorized],
-  );
+type AuthSnapshot = Pick<
+  AuthContextValue,
+  "isRestoring" | "isAuthenticated" | "user"
+>;
 
-  useEffect(() => {
-    let active = true;
-    const restore = async () => {
-      const tokens = await browserTokenStore.get();
-      if (!tokens) { if (active) setIsRestoring(false); return; }
-      try {
-        const response = await getAuthMe(undefined, apiClient.fetch);
-        if (active) setUser(response.data);
-      } catch {
-        // The shared client clears an expired session and invokes onUnauthorized.
-      } finally {
-        if (active) setIsRestoring(false);
-      }
-    };
-    void restore();
-    return () => { active = false; };
-  }, [apiClient]);
+class BrowserAuthService {
+  private listeners = new Set<() => void>();
+  private restorePromise: Promise<void> | undefined;
+  private snapshot: AuthSnapshot = {
+    isRestoring: true,
+    isAuthenticated: false,
+    user: undefined,
+  };
+  readonly apiClient: ApiClient;
+  get isRestoring() {
+    return this.snapshot.isRestoring;
+  }
+  get isAuthenticated() {
+    return this.snapshot.isAuthenticated;
+  }
 
-  const login = useCallback(async (email: string, password: string) => {
-    const response = await postAuthLogin({ email, password }, undefined, apiClient.fetch);
+  constructor() {
+    this.apiClient = createApiClient({
+      baseUrl: apiBaseUrl,
+      tokenStore: browserTokenStore,
+      onUnauthorized: () => this.setUser(undefined),
+    });
+  }
+
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+  getSnapshot = () => this.snapshot;
+  private publish() {
+    this.listeners.forEach((listener) => listener());
+  }
+  private setUser(user: UserDto | undefined) {
+    this.snapshot = { ...this.snapshot, user, isAuthenticated: Boolean(user) };
+    this.publish();
+  }
+
+  async ensureRestored() {
+    if (!this.restorePromise) {
+      this.restorePromise = (async () => {
+        const tokens = await browserTokenStore.get();
+        if (tokens) {
+          try {
+            this.setUser(
+              (await getAuthMe(undefined, this.apiClient.fetch)).data,
+            );
+          } catch {
+            /* shared client handles expiry */
+          }
+        }
+        this.snapshot = { ...this.snapshot, isRestoring: false };
+        this.publish();
+      })();
+    }
+    return this.restorePromise;
+  }
+
+  async login(email: string, password: string) {
+    const response = await postAuthLogin(
+      { email, password },
+      undefined,
+      this.apiClient.fetch,
+    );
     const { accessToken, refreshToken, user: nextUser } = response.data;
-    if (!accessToken || !refreshToken) throw new Error("Giriş yanıtı geçerli bir oturum anahtarı içermiyor.");
+    if (!accessToken || !refreshToken)
+      throw new Error(i18n.t("invalidLoginResponse"));
     await browserTokenStore.set({ accessToken, refreshToken });
-    setUser(nextUser);
-  }, [apiClient]);
+    this.setUser(nextUser);
+  }
 
-  const logout = useCallback(async () => {
+  async logout() {
     const tokens = await browserTokenStore.get();
     try {
-      if (tokens?.refreshToken) await postAuthLogout({ refreshToken: tokens.refreshToken }, undefined, apiClient.fetch);
+      if (tokens?.refreshToken)
+        await postAuthLogout(
+          { refreshToken: tokens.refreshToken },
+          undefined,
+          this.apiClient.fetch,
+        );
     } finally {
       await browserTokenStore.clear();
-      setUser(undefined);
+      this.setUser(undefined);
     }
-  }, [apiClient]);
+  }
+}
 
-  const value = useMemo<AuthContextValue>(() => ({
-    apiClient, isRestoring, isAuthenticated: Boolean(user), user, login, logout,
-  }), [apiClient, isRestoring, user, login, logout]);
+export const browserAuth = new BrowserAuthService();
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const snapshot = useSyncExternalStore(
+    browserAuth.subscribe,
+    browserAuth.getSnapshot,
+    browserAuth.getSnapshot,
+  );
+  void browserAuth.ensureRestored();
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      apiClient: browserAuth.apiClient,
+      ...snapshot,
+      login: (email, password) => browserAuth.login(email, password),
+      logout: () => browserAuth.logout(),
+    }),
+    [snapshot],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

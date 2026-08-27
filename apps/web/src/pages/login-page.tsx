@@ -1,18 +1,118 @@
-import { type FormEvent, useState } from "react";
-import { Navigate, useNavigate } from "react-router";
+import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { z } from "zod";
+import { useAuth } from "../auth";
 import { Alert } from "../components/ui/alert";
 import { Button } from "../components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "../components/ui/field";
 import { Input } from "../components/ui/input";
-import { useAuth } from "../auth";
 
-export function LoginPage() {
-  const { isAuthenticated, isRestoring, login } = useAuth();
+export function LoginPage({ redirectTo }: { redirectTo?: string }) {
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { t } = useTranslation();
   const [error, setError] = useState<string>();
-  const [submitting, setSubmitting] = useState(false);
-  if (!isRestoring && isAuthenticated) return <Navigate to="/products" replace />;
-  const submit = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setSubmitting(true); setError(undefined); try { await login(email.trim(), password); navigate("/products", { replace: true }); } catch (reason) { setError(reason instanceof Error ? reason.message : "Giriş yapılamadı."); } finally { setSubmitting(false); } };
-  return <main className="grid min-h-screen place-items-center bg-muted/30 p-6"><form className="grid w-full max-w-md gap-5 rounded-xl border bg-card p-8 shadow-sm" onSubmit={submit}><div><p className="text-sm font-semibold uppercase tracking-wider text-primary">StokMate</p><h1 className="mt-2 text-2xl font-semibold">Stok yönetimine giriş yapın</h1></div><label className="grid gap-2 text-sm font-medium">E-posta<Input autoComplete="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label className="grid gap-2 text-sm font-medium">Şifre<Input autoComplete="current-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{error && <Alert className="border-destructive text-destructive" role="alert">{error}</Alert>}<Button type="submit" disabled={submitting}>{submitting ? "Giriş yapılıyor…" : "Giriş yap"}</Button></form></main>;
+  const loginSchema = z.object({
+    email: z.string().trim().email(t("invalidEmail")),
+    password: z.string().min(1, t("required")),
+  });
+  const form = useForm({
+    defaultValues: { email: "", password: "" },
+    validators: { onSubmit: loginSchema },
+    onSubmit: async ({ value }) => {
+      setError(undefined);
+      try {
+        await login(value.email.trim(), value.password);
+        await navigate({ to: redirectTo ?? "/products", replace: true });
+      } catch {
+        setError(t("loginError"));
+      }
+    },
+  });
+  return (
+    <main className="grid min-h-screen place-items-center bg-muted/30 p-6">
+      <form
+        className="grid w-full max-w-md gap-5 rounded-xl border bg-card p-8 shadow-sm"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <div>
+          <p className="text-sm font-semibold tracking-wider text-primary uppercase">
+            StokMate
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold">{t("loginTitle")}</h1>
+        </div>
+        <FieldGroup>
+          <form.Field name="email">
+            {(field) => {
+              const invalid =
+                field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={invalid}>
+                  <FieldLabel htmlFor={field.name}>{t("email")}</FieldLabel>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    autoComplete="email"
+                    type="email"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    aria-invalid={invalid}
+                  />
+                  {invalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          </form.Field>
+          <form.Field name="password">
+            {(field) => {
+              const invalid =
+                field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={invalid}>
+                  <FieldLabel htmlFor={field.name}>{t("password")}</FieldLabel>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    autoComplete="current-password"
+                    type="password"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    aria-invalid={invalid}
+                  />
+                  {invalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          </form.Field>
+        </FieldGroup>
+        {error && (
+          <Alert className="border-destructive text-destructive" role="alert">
+            {error}
+          </Alert>
+        )}
+        <form.Subscribe
+          selector={(state) => [state.isSubmitting, state.canSubmit] as const}
+        >
+          {([isSubmitting, canSubmit]) => (
+            <Button type="submit" disabled={isSubmitting || !canSubmit}>
+              {isSubmitting ? t("signingIn") : t("signIn")}
+            </Button>
+          )}
+        </form.Subscribe>
+      </form>
+    </main>
+  );
 }

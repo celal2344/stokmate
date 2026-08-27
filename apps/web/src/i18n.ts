@@ -4,14 +4,17 @@ import { initReactI18next } from "react-i18next";
 
 const languageStorageKey = "stokmate.web.language";
 const savedLanguage = window.localStorage.getItem(languageStorageKey);
+const initialLanguage = savedLanguage === "en" ? "en" : defaultLanguage;
 
 void i18n.use(initReactI18next).init({
   resources,
-  lng: savedLanguage === "en" ? "en" : defaultLanguage,
+  lng: initialLanguage,
   fallbackLng: fallbackLanguage,
   defaultNS: "web",
   interpolation: { escapeValue: false },
 });
+
+document.documentElement.lang = initialLanguage;
 
 i18n.on("languageChanged", (language) => {
   window.localStorage.setItem(languageStorageKey, language);
