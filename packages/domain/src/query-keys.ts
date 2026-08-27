@@ -6,3 +6,9 @@ export const productQueryKeys = {
   detail: (id: number) => [...productQueryKeys.details(), id] as const,
   stats: () => [...productQueryKeys.all, "stats"] as const
 };
+
+export const lookupQueryKeys = {
+  all: ["lookups"] as const,
+  categories: () => [...lookupQueryKeys.all, "categories"] as const,
+  brands: () => [...lookupQueryKeys.all, "brands"] as const
+};

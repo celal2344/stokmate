@@ -22,6 +22,7 @@
 - Web and mobile application features are not implemented yet.
 - CI validation, SignalR product events, APK delivery, and the expanded Turkish README are deferred.
 - API errors remain plain text and product updates retain last-write-wins behavior.
+- Orval 8.26 runtime validation does not emit a reusable top-level Zod parser for the API's inline `CategoryDto[]` and `BrandDto[]` lookup responses. Their item schemas are generated, but the generated fetch operations do not parse the arrays. This remains a generator limitation until a small configuration-only solution is available.
 
 ## Next gates
 
