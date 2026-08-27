@@ -50,6 +50,7 @@ class ProductEventsConnection {
       const connection = new HubConnectionBuilder()
         .withUrl(`${baseUrl.replace(/\/$/, "")}/hubs/products`, {
           accessTokenFactory,
+          withCredentials: false,
         })
         .withAutomaticReconnect()
         .configureLogging(LogLevel.None)
