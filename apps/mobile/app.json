@@ -6,15 +6,34 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "android": {
+      "package": "com.celal2344.stokmate",
+      "versionCode": 1
+    },
     "plugins": [
       "expo-router",
       "expo-secure-store",
       [
         "expo-camera",
         {
-          "cameraPermission": "Barkod taramak için StokMate'in kameranıza erişmesine izin verin."
+          "cameraPermission": "Barkod taramak için StokMate'in kameranıza erişmesine izin verin.",
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a5776ae1-4196-4d25-8686-9ed8d1dfae35"
+      }
+    }
   }
 }
