@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       pnpm:
-        specifier: 10.17.1
-        version: 10.17.1
+        specifier: 11.24.0
+        version: 11.24.0
       prettier:
         specifier: 3.9.6
         version: 3.9.6
@@ -4763,9 +4763,9 @@ packages:
     resolution: {integrity: sha512-NCrCHhWmnQklfH4MtJMRjZ2a8c80qXeMlQMv2uVp9ISJMTt562SbGd6n2oq0PaPgKm7Z6pL9E2UlLIhC+SHL3w==}
     engines: {node: '>=4.0.0'}
 
-  pnpm@10.17.1:
-    resolution: {integrity: sha512-F8Vg/KSGeulHOjiZrYSogzSRTzeb5G1FXL+S5c9LOdNJhdRS0lg7rxmWf6dstcF7yeJFUp0LmHRXIapyAOyveg==}
-    engines: {node: '>=18.12'}
+  pnpm@11.24.0:
+    resolution: {integrity: sha512-vSfjRel23LC+C3oSKCF7BJqBfiGx81XJDb59xGZxiVqLwebQbCRVRQXqk+oLRfSJon7Bv7yN5qlln8oPFvoAAA==}
+    engines: {node: '>=22.13'}
     hasBin: true
 
   postcss-import@15.1.0:
@@ -11246,7 +11246,7 @@ snapshots:
 
   pngjs@3.4.0: {}
 
-  pnpm@10.17.1: {}
+  pnpm@11.24.0: {}
 
   postcss-import@15.1.0(postcss@8.5.26):
     dependencies:
