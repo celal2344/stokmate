@@ -232,7 +232,6 @@ Implement in small reviewable slices:
 
 Before every commit:
 
-- Show the exact diff, checks run, and proposed focused commit message.
 - Ask for explicit approval to commit.
 - Ask separately before any push or tag.
 - Never combine unrelated slices into one commit.
