@@ -20,7 +20,6 @@ import { lookupQueryKeys, productQueryKeys } from "@stokmate/domain";
 import { useAuth } from "../../auth";
 import { PreferencesControls } from "../../components/preferences-controls";
 import { Alert } from "../../components/ui/alert";
-import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import {
   DropdownMenu,
@@ -58,30 +57,20 @@ function Kpi({
   label,
   value,
   loading,
-  variant = "default",
 }: {
   label: string;
   value?: number;
   loading: boolean;
-  variant?: "default" | "warning" | "destructive";
 }) {
-  const { t } = useTranslation();
   return (
-    <article className="rounded-lg border bg-card p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm text-muted-foreground">{label}</span>
-        <Badge variant={variant === "default" ? "secondary" : variant}>
-          {variant === "warning"
-            ? t("lowStock")
-            : variant === "destructive"
-              ? t("outOfStock")
-              : t("totalProducts")}
-        </Badge>
-      </div>
+    <article className="bg-card px-4 py-3">
+      <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        {label}
+      </span>
       {loading ? (
-        <Skeleton className="mt-3 h-8 w-16" />
+        <Skeleton className="mt-2 h-7 w-14" />
       ) : (
-        <strong className="mt-3 block text-3xl">
+        <strong className="mt-1 block text-2xl tracking-tight tabular-nums">
           {formatStock(value ?? 0)}
         </strong>
       )}
@@ -113,22 +102,22 @@ function ProductTable({
             <div className="flex min-w-56 items-center gap-3">
               {row.original.imageUrl ? (
                 <img
-                  className="size-10 rounded object-cover"
+                  className="size-9 rounded-md border border-border object-cover"
                   src={row.original.imageUrl}
                   alt=""
                 />
               ) : (
-                <span className="size-10 rounded bg-muted" />
+                <span className="size-9 rounded-md border border-border bg-muted" />
               )}
               <div>
                 <Link
-                  className="font-medium text-primary hover:underline"
+                  className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
                   to="/products/$productId"
                   params={{ productId: String(row.original.id) }}
                 >
                   {row.original.name ?? "—"}
                 </Link>
-                <small className="block text-muted-foreground">
+                <small className="mt-0.5 block text-xs text-muted-foreground">
                   {row.original.sku ?? t("noSku")} ·{" "}
                   {row.original.barcode ?? t("noBarcode")}
                 </small>
@@ -142,7 +131,7 @@ function ProductTable({
           cell: ({ row }) => (
             <>
               {row.original.categoryName ?? "—"}
-              <small className="block text-muted-foreground">
+              <small className="mt-0.5 block text-xs text-muted-foreground">
                 {row.original.brandName ?? "—"}
               </small>
             </>
@@ -164,15 +153,22 @@ function ProductTable({
             const low =
               (row.original.stock ?? 0) <= (row.original.minStock ?? 0);
             return (
-              <span
-                className={
-                  low
-                    ? "font-semibold text-amber-700 dark:text-amber-300"
-                    : undefined
-                }
-              >
-                {formatStock(row.original.stock ?? 0, locale)}
-              </span>
+              <>
+                <span
+                  className={
+                    low
+                      ? "block font-semibold text-amber-700 dark:text-amber-300"
+                      : "tabular-nums"
+                  }
+                >
+                  {formatStock(row.original.stock ?? 0, locale)}
+                </span>
+                {low && (
+                  <small className="mt-0.5 block text-xs font-medium text-muted-foreground">
+                    {t("lowStock")}
+                  </small>
+                )}
+              </>
             );
           },
         }),
@@ -180,17 +176,19 @@ function ProductTable({
           id: "status",
           header: t("status"),
           cell: ({ row }) => (
-            <Badge
-              variant={
-                row.original.status === 3
-                  ? "destructive"
-                  : row.original.status === 2
-                    ? "warning"
-                    : "secondary"
-              }
-            >
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+              <span
+                aria-hidden="true"
+                className={
+                  row.original.status === 3
+                    ? "size-1.5 rounded-full bg-destructive"
+                    : row.original.status === 2
+                      ? "size-1.5 rounded-full bg-amber-500"
+                      : "size-1.5 rounded-full bg-primary"
+                }
+              />
               {statusLabel(row.original.status, t)}
-            </Badge>
+            </span>
           ),
         }),
         columnHelper.display({
@@ -214,7 +212,7 @@ function ProductTable({
     updatedAt: "updatedAt",
   };
   return (
-    <Table>
+    <Table className="min-w-[55rem]">
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -227,7 +225,7 @@ function ProductTable({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="-ml-3"
+                      className="-ml-3 h-8 text-xs font-medium text-muted-foreground hover:text-foreground"
                       aria-label={t("sortColumn", {
                         column: header.column.columnDef.header,
                       })}
@@ -355,17 +353,16 @@ export function ProductsPage() {
   const sortKey =
     sortOptions.find(([value]) => value === search.sort)?.[1] ?? "sort";
   return (
-    <main className="mx-auto max-w-7xl p-4 md:p-8">
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <main className="mx-auto max-w-[90rem] px-4 py-5 md:px-8 md:py-8">
+      <header className="mb-7 flex flex-wrap items-end justify-between gap-5 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-semibold tracking-wider text-primary uppercase">
-            StokMate
-          </p>
-          <h1 className="text-3xl font-semibold">{t("products")}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("products")}
+          </h1>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-end gap-4">
           <PreferencesControls />
-          <span className="text-sm text-muted-foreground">
+          <span className="mb-1 text-sm text-muted-foreground">
             {user?.fullName ?? user?.email}
           </span>
           <Button
@@ -381,7 +378,7 @@ export function ProductsPage() {
         </div>
       </header>
       <section
-        className="mb-4 grid gap-4 md:grid-cols-3"
+        className="mb-5 grid overflow-hidden border border-border bg-card md:grid-cols-3"
         aria-label={t("inventory")}
       >
         <Kpi
@@ -393,25 +390,23 @@ export function ProductsPage() {
           label={t("lowStock")}
           value={stats.data?.lowStock}
           loading={stats.isLoading}
-          variant="warning"
         />
         <Kpi
           label={t("outOfStock")}
           value={stats.data?.outOfStock}
           loading={stats.isLoading}
-          variant="destructive"
         />
       </section>
-      <section className="overflow-hidden rounded-lg border bg-card shadow-sm">
-        <div className="grid gap-3 border-b p-4 md:grid-cols-3 lg:grid-cols-5">
-          <label className="grid gap-1 text-sm font-medium md:col-span-3 lg:col-span-1">
+      <section className="overflow-hidden border border-border bg-card">
+        <div className="grid gap-4 border-b bg-muted/25 p-4 md:grid-cols-2 lg:grid-cols-5">
+          <label className="grid gap-1.5 text-sm font-medium md:col-span-2 lg:col-span-1">
             {t("searchProducts")}
             <Input
               value={input}
               onChange={(event) => setInput(event.target.value)}
             />
           </label>
-          <label className="grid gap-1 text-sm font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             {t("category")}
             <Select
               value={String(search.categoryId ?? "")}
@@ -431,7 +426,7 @@ export function ProductsPage() {
               ))}
             </Select>
           </label>
-          <label className="grid gap-1 text-sm font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             {t("brand")}
             <Select
               value={String(search.brandId ?? "")}
@@ -451,7 +446,7 @@ export function ProductsPage() {
               ))}
             </Select>
           </label>
-          <label className="grid gap-1 text-sm font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             {t("status")}
             <Select
               value={String(search.status ?? "")}
@@ -469,7 +464,7 @@ export function ProductsPage() {
               <option value="3">{t("discontinued")}</option>
             </Select>
           </label>
-          <div className="grid gap-1 text-sm font-medium">
+          <div className="grid gap-1.5 text-sm font-medium">
             <span>{t("sort")}</span>
             <DropdownMenu>
               <DropdownMenuTrigger>
@@ -501,10 +496,10 @@ export function ProductsPage() {
           </div>
         </div>
         {products.isLoading ? (
-          <div className="space-y-3 p-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+          <div className="space-y-px bg-border p-px">
+            <Skeleton className="h-14 w-full rounded-none bg-card" />
+            <Skeleton className="h-14 w-full rounded-none bg-card" />
+            <Skeleton className="h-14 w-full rounded-none bg-card" />
           </div>
         ) : products.isError ? (
           <Alert
@@ -521,7 +516,7 @@ export function ProductsPage() {
             </Button>
           </Alert>
         ) : !products.data?.items?.length ? (
-          <div className="p-12 text-center text-muted-foreground">
+          <div className="p-12 text-center text-sm text-muted-foreground">
             {t("emptyProducts")}
           </div>
         ) : (
@@ -533,11 +528,14 @@ export function ProductsPage() {
             locale={i18n.language}
           />
         )}
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t p-4 text-sm text-muted-foreground">
-          <span>{t("productCount", { count: products.data?.total ?? 0 })}</span>
-          <label className="grid gap-1 text-sm font-medium">
+        <footer className="grid gap-4 border-t bg-muted/30 px-4 py-3 text-sm text-muted-foreground md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-end">
+          <span className="pb-1 tabular-nums">
+            {t("productCount", { count: products.data?.total ?? 0 })}
+          </span>
+          <label className="grid w-fit gap-1 text-sm font-medium">
             {t("pageSize")}
             <Select
+              className="w-24"
               value={String(search.pageSize)}
               onChange={(event) =>
                 update({
@@ -554,7 +552,7 @@ export function ProductsPage() {
               ))}
             </Select>
           </label>
-          <Pagination className="gap-1">
+          <Pagination className="gap-1 md:justify-self-end">
             <Button
               size="sm"
               variant="outline"

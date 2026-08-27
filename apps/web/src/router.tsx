@@ -8,7 +8,9 @@ export const router = createRouter({
   context: { auth: browserAuth, queryClient: undefined! },
   defaultNotFoundComponent: () => (
     <main className="grid min-h-screen place-items-center p-6">
-      {i18n.t("pageNotFound")}
+      <h1 className="text-xl font-semibold tracking-tight">
+        {i18n.t("pageNotFound")}
+      </h1>
     </main>
   ),
 });
