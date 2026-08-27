@@ -25,8 +25,10 @@ export const styles = StyleSheet.create({
     borderRadius: 9,
     borderWidth: 1,
     justifyContent: "center",
+    minHeight: 46,
     paddingHorizontal: 12
   },
+  headerActions: { alignItems: "flex-end", flexDirection: "row", gap: 10 },
   footer: { alignItems: "center", padding: 20 },
   header: {
     alignItems: "center",
@@ -46,6 +48,7 @@ export const styles = StyleSheet.create({
   },
   lowStock: { color: "#b91c1c" },
   muted: { color: "#64748b", marginTop: 3 },
+  mutedDark: { color: "#cbd5e1" },
   name: { color: "#0f172a", fontWeight: "700" },
   option: {
     borderColor: "#cbd5e1",
@@ -67,6 +70,7 @@ export const styles = StyleSheet.create({
   },
   rowBody: { flex: 1 },
   safe: { backgroundColor: "#f8fafc", flex: 1 },
+  safeDark: { backgroundColor: "#0f172a" },
   search: {
     backgroundColor: "white",
     borderColor: "#cbd5e1",
@@ -76,7 +80,10 @@ export const styles = StyleSheet.create({
     minHeight: 46,
     paddingHorizontal: 12
   },
+  searchDark: { backgroundColor: "#1e293b", borderColor: "#475569", color: "#f8fafc" },
   searchLine: { flexDirection: "row", gap: 8 },
+  scanButton: { alignItems: "center", borderColor: "#0f766e", borderRadius: 9, borderWidth: 1, justifyContent: "center", minHeight: 46, paddingHorizontal: 10 },
+  signOut: { justifyContent: "center", minHeight: 40 },
   selectedOption: { backgroundColor: "#ccfbf1", borderColor: "#0f766e" },
   shade: { backgroundColor: "#0008", flex: 1, justifyContent: "flex-end" },
   sheet: {
@@ -88,5 +95,6 @@ export const styles = StyleSheet.create({
   },
   sheetTitle: { fontSize: 21, fontWeight: "700" },
   stock: { color: "#166534", fontWeight: "700" },
+  textDark: { color: "#f8fafc" },
   title: { color: "#0f172a", fontSize: 27, fontWeight: "700" }
 });

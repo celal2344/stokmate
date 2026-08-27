@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text } from "react-native";
 
 import { SessionProvider, useSession } from "../src/session";
+import { PreferencesProvider } from "../src/preferences";
 
 function AppNavigator() {
   const { isRestoring } = useSession();
@@ -32,9 +33,11 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider>
-        <AppNavigator />
-      </SessionProvider>
+      <PreferencesProvider>
+        <SessionProvider>
+          <AppNavigator />
+        </SessionProvider>
+      </PreferencesProvider>
     </QueryClientProvider>
   );
 }
