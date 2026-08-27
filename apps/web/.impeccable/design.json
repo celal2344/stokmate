@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-27T00:00:00.000Z",
+  "title": "Design System: StokMate Web",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Operational Indigo",
+        "canonical": "oklch(0.52 0.19 260)",
+        "tonalRamp": [
+          "oklch(0.23 0.03 260)",
+          "oklch(0.35 0.1 260)",
+          "oklch(0.52 0.19 260)",
+          "oklch(0.7 0.16 260)",
+          "oklch(0.93 0.03 260)"
+        ]
+      }
+    },
+    "breakpoints": [{ "name": "tablet", "value": "768px" }]
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "The Operations Ledger",
+    "overview": "StokMate is a calm, credible work surface for scanning, comparison, and correction.",
+    "keyCharacteristics": [
+      "Dense structured information",
+      "Restrained semantic color",
+      "Shadcn and Tailwind foundations"
+    ],
+    "rules": [
+      {
+        "name": "The Reserved Accent Rule",
+        "body": "Primary color clarifies action and focus; it never becomes decoration.",
+        "section": "colors"
+      }
+    ],
+    "dos": ["Do keep dense information aligned to a stable grid."],
+    "donts": [
+      "Don't use generic SaaS gradients, glass, or oversized KPI tiles."
+    ]
+  }
+}

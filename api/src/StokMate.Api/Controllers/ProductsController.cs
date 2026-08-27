@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using StokMate.Api.Auth;
+using StokMate.Api.Hubs;
 using StokMate.Api.Models;
 using StokMate.Api.Services;
 
@@ -11,10 +13,12 @@ namespace StokMate.Api.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly ProductService _productService;
+    private readonly IHubContext<ProductHub> _productHub;
 
-    public ProductsController(ProductService productService)
+    public ProductsController(ProductService productService, IHubContext<ProductHub> productHub)
     {
         _productService = productService;
+        _productHub = productHub;
     }
 
     /// <summary>Filtrelenebilir, sıralanabilir ve sayfalanabilir ürün listesi.</summary>
@@ -35,28 +39,50 @@ public class ProductsController : ControllerBase
     /// <summary>Yeni ürün oluşturur.</summary>
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create([FromBody] CreateProductRequest request)
-        => StatusCode(StatusCodes.Status201Created, await _productService.CreateAsync(request));
+    {
+        var product = await _productService.CreateAsync(request);
+        await BroadcastProductChangedAsync(product.Id, ProductChangeTypes.Created, product.UpdatedAt);
+        return StatusCode(StatusCodes.Status201Created, product);
+    }
 
     /// <summary>Ürünün tüm alanlarını günceller.</summary>
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ProductDto>> Update(int id, [FromBody] UpdateProductRequest request)
-        => await _productService.UpdateAsync(id, request);
+    {
+        var product = await _productService.UpdateAsync(id, request);
+        await BroadcastProductChangedAsync(product.Id, ProductChangeTypes.Updated, product.UpdatedAt);
+        return product;
+    }
 
     /// <summary>Yeni eklenen: Yalnızca verilen ürün alanlarını günceller.</summary>
     [HttpPatch("{id:int}")]
     public async Task<ActionResult<ProductDetailDto>> UpdateFields(int id, [FromBody] UpdateProductFieldsRequest request)
-        => await _productService.UpdateFieldsAsync(id, request);
+    {
+        var product = await _productService.UpdateFieldsAsync(id, request);
+        await BroadcastProductChangedAsync(product.Id, ProductChangeTypes.Updated, product.UpdatedAt);
+        return product;
+    }
 
     /// <summary>Yalnızca stok miktarını günceller.</summary>
     [HttpPatch("{id:int}/stock")]
     public async Task<ActionResult<ProductDto>> UpdateStock(int id, [FromBody] UpdateStockRequest request)
-        => await _productService.UpdateStockAsync(id, request);
+    {
+        var product = await _productService.UpdateStockAsync(id, request);
+        await BroadcastProductChangedAsync(product.Id, ProductChangeTypes.StockUpdated, product.UpdatedAt);
+        return product;
+    }
 
     /// <summary>Ürünü siler.</summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
         await _productService.DeleteAsync(id);
+        await BroadcastProductChangedAsync(id, ProductChangeTypes.Deleted, DateTime.UtcNow);
         return NoContent();
     }
+
+    private Task BroadcastProductChangedAsync(int productId, string changeType, DateTime updatedAt)
+        => _productHub.Clients.All.SendAsync(
+            ProductHub.ProductChangedEventName,
+            new ProductChangeEvent(productId, changeType, updatedAt));
 }

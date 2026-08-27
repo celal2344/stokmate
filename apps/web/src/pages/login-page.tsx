@@ -37,20 +37,19 @@ export function LoginPage({ redirectTo }: { redirectTo?: string }) {
     },
   });
   return (
-    <main className="grid min-h-screen place-items-center bg-muted/30 p-6">
+    <main className="grid min-h-screen place-items-center px-4 py-8 md:p-8">
       <form
-        className="grid w-full max-w-md gap-5 rounded-xl border bg-card p-8 shadow-sm"
+        className="grid w-full max-w-md gap-6 border border-border bg-card p-6 shadow-sm md:p-8"
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
           void form.handleSubmit();
         }}
       >
-        <div>
-          <p className="text-sm font-semibold tracking-wider text-primary uppercase">
-            StokMate
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold">{t("loginTitle")}</h1>
+        <div className="border-b border-border pb-5">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("loginTitle")}
+          </h1>
         </div>
         <FieldGroup>
           <form.Field name="email">

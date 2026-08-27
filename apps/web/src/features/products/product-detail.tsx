@@ -72,8 +72,10 @@ function EditForm({
     onSubmit: async ({ value }) => onSave(value),
   });
   return (
-    <section className="max-w-2xl rounded-lg border bg-card p-6 shadow-sm">
-      <h2 className="mb-5 text-xl font-semibold">{t("edit")}</h2>
+    <section className="max-w-3xl border border-border bg-card p-5 md:p-6">
+      <div className="mb-5 border-b border-border pb-4">
+        <h2 className="text-xl font-semibold tracking-tight">{t("edit")}</h2>
+      </div>
       <form
         className="grid gap-4"
         noValidate
@@ -249,22 +251,28 @@ function ProductRecord({
     [t("updatedAt"), dateValue(product.updatedAt, locale)],
   ];
   return (
-    <section className="rounded-lg border bg-card p-6 shadow-sm">
-      <h2 className="mb-4 text-xl font-semibold">{t("details")}</h2>
-      {product.imageUrl && (
-        <img
-          className="mb-4 max-h-48 w-full max-w-48 rounded-lg object-cover"
-          src={product.imageUrl}
-          alt=""
-        />
-      )}
-      <dl className="grid gap-4 md:grid-cols-2">
+    <section className="border border-border bg-card p-5 md:p-6">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">
+            {t("details")}
+          </h2>
+        </div>
+        {product.imageUrl && (
+          <img
+            className="size-20 rounded-md border border-border object-cover"
+            src={product.imageUrl}
+            alt=""
+          />
+        )}
+      </div>
+      <dl className="grid divide-y divide-border md:grid-cols-2 md:gap-x-8 md:[&>div:nth-child(2)]:border-t-0">
         {rows.map(([label, value]) => (
-          <div key={label} className="border-t pt-3">
-            <dt className="text-sm font-medium text-muted-foreground">
+          <div key={label} className="py-3">
+            <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {label}
             </dt>
-            <dd className="mt-1 break-words">{value}</dd>
+            <dd className="mt-1 text-sm break-words">{value}</dd>
           </div>
         ))}
       </dl>
@@ -275,7 +283,8 @@ function ProductRecord({
 export function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const { productId } = Route.useParams();
-  const { apiClient } = useAuth();
+  const navigate = Route.useNavigate();
+  const { apiClient, logout } = useAuth();
   const cache = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [feedback, setFeedback] = useState<string>();
@@ -337,7 +346,7 @@ export function ProductDetailPage() {
     );
   if (query.isLoading)
     return (
-      <main className="mx-auto max-w-7xl p-8">
+      <main className="mx-auto max-w-[90rem] p-8">
         <h1 className="sr-only">{t("productDetails")}</h1>
         <Skeleton className="h-10 w-48" />
         <Skeleton className="mt-6 h-96 w-full" />
@@ -361,24 +370,21 @@ export function ProductDetailPage() {
     );
   const product = query.data;
   return (
-    <main className="mx-auto max-w-7xl p-4 md:p-8">
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <main className="mx-auto max-w-[90rem] px-4 py-5 md:px-8 md:py-8">
+      <header className="mb-7 flex flex-wrap items-end justify-between gap-5 border-b border-border pb-5">
         <div>
           <Link
-            className="text-sm text-primary hover:underline"
+            className="text-sm text-primary underline-offset-4 hover:underline"
             to="/products"
             search={productSearch}
           >
             ← {t("backToProducts")}
           </Link>
-          <p className="mt-3 text-sm font-semibold tracking-wider text-primary uppercase">
-            StokMate
-          </p>
-          <h1 className="text-3xl font-semibold">
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight">
             {product.name ?? t("productDetails")}
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           <PreferencesControls />
           <Button
             onClick={() => {
@@ -388,10 +394,20 @@ export function ProductDetailPage() {
           >
             {t("edit")}
           </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              void logout().then(() =>
+                navigate({ to: "/login", replace: true }),
+              )
+            }
+          >
+            {t("logout")}
+          </Button>
         </div>
       </header>
       {feedback && (
-        <Alert className="mb-4" role="status">
+        <Alert className="mb-5 border-primary/30" role="status">
           {feedback}
         </Alert>
       )}
