@@ -6,7 +6,6 @@ import {
   type AuthTokens,
   type TokenStore,
 } from "@stokmate/api-client";
-import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
 import i18n from "i18next";
 import {
@@ -18,6 +17,7 @@ import {
   useState,
   type PropsWithChildren,
 } from "react";
+import { appStorage } from "./storage";
 
 const ACCESS_TOKEN_KEY = "stokmate.access-token";
 const REFRESH_TOKEN_KEY = "stokmate.refresh-token";
@@ -40,21 +40,21 @@ const SessionContext = createContext<SessionContextValue | null>(null);
 const tokenStore: TokenStore = {
   async get() {
     const [accessToken, refreshToken] = await Promise.all([
-      SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
-      SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+      appStorage.getItem(ACCESS_TOKEN_KEY),
+      appStorage.getItem(REFRESH_TOKEN_KEY),
     ]);
     return accessToken && refreshToken ? { accessToken, refreshToken } : null;
   },
   async set(tokens) {
     await Promise.all([
-      SecureStore.setItemAsync(ACCESS_TOKEN_KEY, tokens.accessToken),
-      SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken),
+      appStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken),
+      appStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken),
     ]);
   },
   async clear() {
     await Promise.all([
-      SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
-      SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+      appStorage.removeItem(ACCESS_TOKEN_KEY),
+      appStorage.removeItem(REFRESH_TOKEN_KEY),
     ]);
   },
 };
@@ -100,14 +100,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([SecureStore.getItemAsync(API_URL_KEY), tokenStore.get()])
+    void Promise.all([appStorage.getItem(API_URL_KEY), tokenStore.get()])
       .then(([storedUrl, storedTokens]) => {
         if (!active) return;
         if (storedUrl) {
           try {
             setApiUrl(validateApiUrl(storedUrl));
           } catch {
-            void SecureStore.deleteItemAsync(API_URL_KEY);
+            void appStorage.removeItem(API_URL_KEY);
           }
         }
         setTokens(storedTokens);
@@ -122,7 +122,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const saveApiUrl = useCallback(async (value: string) => {
     const validated = validateApiUrl(value);
-    await SecureStore.setItemAsync(API_URL_KEY, validated);
+    await appStorage.setItem(API_URL_KEY, validated);
     setApiUrl(validated);
   }, []);
 
@@ -155,7 +155,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       const nextTokens = { accessToken, refreshToken };
       await Promise.all([
         tokenStore.set(nextTokens),
-        SecureStore.setItemAsync(API_URL_KEY, validatedUrl),
+        appStorage.setItem(API_URL_KEY, validatedUrl),
       ]);
       setApiUrl(validatedUrl);
       setTokens(nextTokens);

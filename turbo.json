@@ -27,6 +27,7 @@
       "env": ["STOKMATE_API_BASE_URL"]
     },
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     }

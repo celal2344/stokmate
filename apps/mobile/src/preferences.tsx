@@ -1,5 +1,4 @@
 import { defaultLanguage, fallbackLanguage, resources } from "@stokmate/i18n";
-import * as SecureStore from "expo-secure-store";
 import i18n from "i18next";
 import {
   createContext,
@@ -11,6 +10,7 @@ import {
   type PropsWithChildren,
 } from "react";
 import { useColorScheme } from "react-native";
+import { appStorage } from "./storage";
 
 const LANGUAGE_KEY = "stokmate.language";
 const THEME_KEY = "stokmate.theme";
@@ -98,8 +98,8 @@ export function PreferencesProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     let active = true;
     void Promise.all([
-      SecureStore.getItemAsync(LANGUAGE_KEY),
-      SecureStore.getItemAsync(THEME_KEY),
+      appStorage.getItem(LANGUAGE_KEY),
+      appStorage.getItem(THEME_KEY),
     ]).then(([savedLanguage, savedTheme]) => {
       if (!active) return;
 
@@ -123,14 +123,14 @@ export function PreferencesProvider({ children }: PropsWithChildren) {
   }, []);
 
   const setLanguage = useCallback(async (nextLanguage: Language) => {
-    await SecureStore.setItemAsync(LANGUAGE_KEY, nextLanguage);
+    await appStorage.setItem(LANGUAGE_KEY, nextLanguage);
     await i18n.changeLanguage(nextLanguage);
     setLanguageState(nextLanguage);
   }, []);
 
   const setThemePreference = useCallback(
     async (preference: ThemePreference) => {
-      await SecureStore.setItemAsync(THEME_KEY, preference);
+      await appStorage.setItem(THEME_KEY, preference);
       setThemePreferenceState(preference);
     },
     [],
