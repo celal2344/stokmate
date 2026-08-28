@@ -13,6 +13,7 @@ import {
   FieldLabel,
 } from "../components/ui/field";
 import { Input } from "../components/ui/input";
+import { PreferencesControls } from "../components/preferences-controls";
 
 export function LoginPage({ redirectTo }: { redirectTo?: string }) {
   const { login } = useAuth();
@@ -37,7 +38,10 @@ export function LoginPage({ redirectTo }: { redirectTo?: string }) {
     },
   });
   return (
-    <main className="grid min-h-screen place-items-center px-4 py-8 md:p-8">
+    <main className="relative grid min-h-screen place-items-center px-4 py-8 md:p-8">
+      <div className="absolute top-4 right-4 md:top-8 md:right-8">
+        <PreferencesControls showConnectionState={false} />
+      </div>
       <form
         className="grid w-full max-w-md gap-6 border border-border bg-card p-6 shadow-sm md:p-8"
         noValidate

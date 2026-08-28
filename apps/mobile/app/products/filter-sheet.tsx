@@ -1,8 +1,11 @@
-import { Modal, Pressable, Text, View } from "react-native";
 import { type BrandDto, type CategoryDto } from "@stokmate/api-client";
 import { type ProductStatus } from "@stokmate/domain";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMemo } from "react";
 
-import { styles } from "./product-list-styles";
+import { usePreferences } from "../../src/preferences";
+import { createProductListStyles } from "./product-list-styles";
 
 export type ProductFilters = {
   brandId?: number;
@@ -20,9 +23,9 @@ type FilterSheetProps = {
 };
 
 const statuses: Array<[ProductStatus, string]> = [
-  [1, "Aktif"],
-  [2, "Pasif"],
-  [3, "Kaldırıldı"]
+  [1, "status.active"],
+  [2, "status.inactive"],
+  [3, "status.discontinued"],
 ];
 
 export function FilterSheet({
@@ -31,8 +34,12 @@ export function FilterSheet({
   onChange,
   onClose,
   value,
-  visible
+  visible,
 }: FilterSheetProps) {
+  const { bottom } = useSafeAreaInsets();
+  const { colors, t } = usePreferences();
+  const styles = useMemo(() => createProductListStyles(colors), [colors]);
+
   const toggle = (key: keyof ProductFilters, id?: number) => {
     const nextValue = value[key] === id ? undefined : id;
     const nextFilters = { ...value, [key]: nextValue };
@@ -45,50 +52,63 @@ export function FilterSheet({
   };
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} transparent visible={visible}>
+    <Modal
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+      transparent
+      visible={visible}
+    >
       <View style={styles.shade}>
-        <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>Filtreler</Text>
+        <View style={[styles.sheet, { paddingBottom: bottom + 16 }]}>
+          <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+            <Text style={styles.sheetTitle}>{t("filters.title")}</Text>
 
-          <Text style={styles.label}>Durum</Text>
-          <View style={styles.options}>
-            {statuses.map(([id, name]) => (
-              <FilterOption
-                key={id}
-                isSelected={value.status === id}
-                label={name}
-                onPress={() => toggle("status", id)}
-              />
-            ))}
-          </View>
+            <Text style={styles.label}>{t("filters.status")}</Text>
+            <View style={styles.options}>
+              {statuses.map(([id, labelKey]) => (
+                <FilterOption
+                  key={id}
+                  isSelected={value.status === id}
+                  label={t(labelKey)}
+                  onPress={() => toggle("status", id)}
+                />
+              ))}
+            </View>
 
-          <Text style={styles.label}>Kategori</Text>
-          <View style={styles.options}>
-            {categories.map((category) => (
-              <FilterOption
-                key={category.id}
-                isSelected={value.categoryId === category.id}
-                label={category.name ?? "—"}
-                onPress={() => toggle("categoryId", category.id)}
-              />
-            ))}
-          </View>
+            <Text style={styles.label}>{t("filters.category")}</Text>
+            <View style={styles.options}>
+              {categories.map((category) => (
+                <FilterOption
+                  key={category.id}
+                  isSelected={value.categoryId === category.id}
+                  label={category.name ?? "—"}
+                  onPress={() => toggle("categoryId", category.id)}
+                />
+              ))}
+            </View>
 
-          <Text style={styles.label}>Marka</Text>
-          <View style={styles.options}>
-            {brands.map((brand) => (
-              <FilterOption
-                key={brand.id}
-                isSelected={value.brandId === brand.id}
-                label={brand.name ?? "—"}
-                onPress={() => toggle("brandId", brand.id)}
-              />
-            ))}
-          </View>
+            <Text style={styles.label}>{t("filters.brand")}</Text>
+            <View style={styles.options}>
+              {brands.map((brand) => (
+                <FilterOption
+                  key={brand.id}
+                  isSelected={value.brandId === brand.id}
+                  label={brand.name ?? "—"}
+                  onPress={() => toggle("brandId", brand.id)}
+                />
+              ))}
+            </View>
 
-          <Pressable onPress={onClose} style={styles.applyButton}>
-            <Text style={styles.applyButtonText}>Uygula</Text>
-          </Pressable>
+            <Pressable
+              accessibilityLabel={t("filters.apply")}
+              accessibilityRole="button"
+              onPress={onClose}
+              style={styles.applyButton}
+            >
+              <Text style={styles.applyButtonText}>{t("filters.apply")}</Text>
+            </Pressable>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -98,15 +118,23 @@ export function FilterSheet({
 function FilterOption({
   isSelected,
   label,
-  onPress
+  onPress,
 }: {
   isSelected: boolean;
   label: string;
   onPress(): void;
 }) {
+  const { colors } = usePreferences();
+  const styles = useMemo(() => createProductListStyles(colors), [colors]);
+
   return (
-    <Pressable onPress={onPress} style={[styles.option, isSelected && styles.selectedOption]}>
-      <Text>{label}</Text>
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={[styles.option, isSelected && styles.selectedOption]}
+    >
+      <Text style={styles.optionText}>{label}</Text>
     </Pressable>
   );
 }

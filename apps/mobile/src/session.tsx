@@ -1,12 +1,29 @@
-import { createApiClient, postAuthLogin, postAuthLogout, type ApiClient, type AuthTokens, type TokenStore } from "@stokmate/api-client";
+import {
+  createApiClient,
+  postAuthLogin,
+  postAuthLogout,
+  type ApiClient,
+  type AuthTokens,
+  type TokenStore,
+} from "@stokmate/api-client";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import i18n from "i18next";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from "react";
 
 const ACCESS_TOKEN_KEY = "stokmate.access-token";
 const REFRESH_TOKEN_KEY = "stokmate.refresh-token";
 const API_URL_KEY = "stokmate.api-url";
-const defaultApiUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://10.0.2.2:5080";
+const defaultApiUrl =
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://10.0.2.2:5080";
 
 export interface SessionContextValue {
   apiUrl: string;
@@ -24,22 +41,22 @@ const tokenStore: TokenStore = {
   async get() {
     const [accessToken, refreshToken] = await Promise.all([
       SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
-      SecureStore.getItemAsync(REFRESH_TOKEN_KEY)
+      SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
     ]);
     return accessToken && refreshToken ? { accessToken, refreshToken } : null;
   },
   async set(tokens) {
     await Promise.all([
       SecureStore.setItemAsync(ACCESS_TOKEN_KEY, tokens.accessToken),
-      SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken)
+      SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken),
     ]);
   },
   async clear() {
     await Promise.all([
       SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
-      SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY)
+      SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
     ]);
-  }
+  },
 };
 
 export function validateApiUrl(value: string): string {
@@ -48,11 +65,14 @@ export function validateApiUrl(value: string): string {
   try {
     url = new URL(normalized);
   } catch {
-    throw new Error("Ge\u00e7erli bir sunucu adresi girin (http:// veya https:// ile).");
+    throw new Error(i18n.t("session.invalidUrl"));
   }
 
-  if (!url.hostname || (url.protocol !== "http:" && url.protocol !== "https:")) {
-    throw new Error("Sunucu adresi http:// veya https:// ile ba\u015flamal\u0131d\u0131r.");
+  if (
+    !url.hostname ||
+    (url.protocol !== "http:" && url.protocol !== "https:")
+  ) {
+    throw new Error(i18n.t("session.invalidProtocol"));
   }
   return normalized;
 }
@@ -69,8 +89,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const apiClient = useMemo(
-    () => createApiClient({ baseUrl: apiUrl, tokenStore, onUnauthorized: handleUnauthorized }),
-    [apiUrl, handleUnauthorized]
+    () =>
+      createApiClient({
+        baseUrl: apiUrl,
+        tokenStore,
+        onUnauthorized: handleUnauthorized,
+      }),
+    [apiUrl, handleUnauthorized],
   );
 
   useEffect(() => {
@@ -101,36 +126,53 @@ export function SessionProvider({ children }: PropsWithChildren) {
     setApiUrl(validated);
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string, requestedApiUrl: string) => {
-    const validatedUrl = validateApiUrl(requestedApiUrl);
-    const loginClient = createApiClient({
-      baseUrl: validatedUrl,
-      tokenStore,
-      onUnauthorized: handleUnauthorized
-    });
-    let response;
-    try {
-      response = await postAuthLogin({ email, password }, undefined, loginClient.fetch);
-    } catch (error) {
-      if (error instanceof TypeError) {
-        throw new Error("Sunucuya ula\u015f\u0131lamad\u0131. Adresi ve yerel a\u011f ba\u011flant\u0131n\u0131z\u0131 kontrol edin.");
+  const signIn = useCallback(
+    async (email: string, password: string, requestedApiUrl: string) => {
+      const validatedUrl = validateApiUrl(requestedApiUrl);
+      const loginClient = createApiClient({
+        baseUrl: validatedUrl,
+        tokenStore,
+        onUnauthorized: handleUnauthorized,
+      });
+      let response;
+      try {
+        response = await postAuthLogin(
+          { email, password },
+          undefined,
+          loginClient.fetch,
+        );
+      } catch (error) {
+        if (error instanceof TypeError) {
+          throw new Error(i18n.t("session.unreachable"));
+        }
+        throw error;
       }
-      throw error;
-    }
-    const accessToken = response.data.accessToken;
-    const refreshToken = response.data.refreshToken;
-    if (!accessToken || !refreshToken) throw new Error("Sunucu ge\u00e7erli bir oturum d\u00f6nd\u00fcrmedi.");
-    const nextTokens = { accessToken, refreshToken };
-    await Promise.all([tokenStore.set(nextTokens), SecureStore.setItemAsync(API_URL_KEY, validatedUrl)]);
-    setApiUrl(validatedUrl);
-    setTokens(nextTokens);
-    router.replace("/");
-  }, [handleUnauthorized]);
+      const accessToken = response.data.accessToken;
+      const refreshToken = response.data.refreshToken;
+      if (!accessToken || !refreshToken) {
+        throw new Error(i18n.t("session.invalidLoginResponse"));
+      }
+      const nextTokens = { accessToken, refreshToken };
+      await Promise.all([
+        tokenStore.set(nextTokens),
+        SecureStore.setItemAsync(API_URL_KEY, validatedUrl),
+      ]);
+      setApiUrl(validatedUrl);
+      setTokens(nextTokens);
+      router.replace("/");
+    },
+    [handleUnauthorized],
+  );
 
   const signOut = useCallback(async () => {
     const currentTokens = await tokenStore.get();
     try {
-      if (currentTokens) await postAuthLogout({ refreshToken: currentTokens.refreshToken }, undefined, apiClient.fetch);
+      if (currentTokens)
+        await postAuthLogout(
+          { refreshToken: currentTokens.refreshToken },
+          undefined,
+          apiClient.fetch,
+        );
     } catch {
       // Local sign-out must succeed even if the server is currently unavailable.
     } finally {
@@ -140,21 +182,27 @@ export function SessionProvider({ children }: PropsWithChildren) {
     }
   }, [apiClient]);
 
-  const value = useMemo(() => ({
-    apiUrl,
-    apiClient,
-    isRestoring,
-    isAuthenticated: tokens !== null,
-    saveApiUrl,
-    signIn,
-    signOut
-  }), [apiClient, apiUrl, isRestoring, saveApiUrl, signIn, signOut, tokens]);
+  const value = useMemo(
+    () => ({
+      apiUrl,
+      apiClient,
+      isRestoring,
+      isAuthenticated: tokens !== null,
+      saveApiUrl,
+      signIn,
+      signOut,
+    }),
+    [apiClient, apiUrl, isRestoring, saveApiUrl, signIn, signOut, tokens],
+  );
 
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  );
 }
 
 export function useSession(): SessionContextValue {
   const context = useContext(SessionContext);
-  if (!context) throw new Error("useSession must be used inside SessionProvider.");
+  if (!context)
+    throw new Error("useSession must be used inside SessionProvider.");
   return context;
 }

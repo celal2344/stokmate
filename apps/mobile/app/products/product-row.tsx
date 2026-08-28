@@ -1,11 +1,12 @@
 import { Image } from "expo-image";
 import { Link } from "expo-router";
-import { memo, type ComponentType } from "react";
+import { memo, useMemo, type ComponentType } from "react";
 import { Pressable, Text, View } from "react-native";
 import { type ProductDto } from "@stokmate/api-client";
 import { formatKurus, formatStock } from "@stokmate/domain";
 
-import { styles } from "./product-list-styles";
+import { usePreferences } from "../../src/preferences";
+import { createProductListStyles } from "./product-list-styles";
 
 const ProductImage = Image as unknown as ComponentType<{
   contentFit: "cover";
@@ -14,11 +15,20 @@ const ProductImage = Image as unknown as ComponentType<{
   style: object;
 }>;
 
-export const ProductRow = memo(function ProductRow({ item }: { item: ProductDto }) {
+export const ProductRow = memo(function ProductRow({
+  item,
+}: {
+  item: ProductDto;
+}) {
+  const { colors, t } = usePreferences();
+  const styles = useMemo(() => createProductListStyles(colors), [colors]);
   const isAtMinimumStock = (item.stock ?? 0) <= (item.minStock ?? 0);
 
   return (
-    <Link asChild href={{ pathname: "/products/[id]", params: { id: String(item.id) } }}>
+    <Link
+      asChild
+      href={{ pathname: "/products/[id]", params: { id: String(item.id) } }}
+    >
       <Pressable style={styles.row}>
         <ProductImage
           contentFit="cover"
@@ -28,7 +38,7 @@ export const ProductRow = memo(function ProductRow({ item }: { item: ProductDto 
         />
         <View style={styles.rowBody}>
           <Text numberOfLines={1} style={styles.name}>
-            {item.name ?? "Adsız ürün"}
+            {item.name ?? t("detail.unnamed")}
           </Text>
           <Text style={styles.muted}>
             {item.sku ?? "—"} · {item.categoryName ?? "—"}
