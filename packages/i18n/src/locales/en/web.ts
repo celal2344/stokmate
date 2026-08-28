@@ -61,6 +61,7 @@ export const web = {
   light: "Light",
   dark: "Dark",
   system: "System",
+  themeToggle: "Theme: {{current}}. Switch to {{next}}.",
   logout: "Log out",
   realtimeConnected: "Live updates connected",
   realtimeReconnecting: "Live updates reconnecting",

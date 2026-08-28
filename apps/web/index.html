@@ -1,6 +1,20 @@
 <!doctype html>
 <html lang="tr">
   <head>
+    <script>
+      (() => {
+        const saved = localStorage.getItem("stokmate.web.theme");
+        const preference = ["light", "dark", "system"].includes(saved)
+          ? saved
+          : "system";
+        document.documentElement.dataset.theme =
+          preference === "system"
+            ? matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light"
+            : preference;
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StokMate</title>

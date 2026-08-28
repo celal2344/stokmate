@@ -60,6 +60,7 @@ export const web = {
   light: "Açık",
   dark: "Koyu",
   system: "Sistem",
+  themeToggle: "Tema: {{current}}. {{next}} temasına geç.",
   logout: "Çıkış yap",
   realtimeConnected: "Canlı güncellemeler bağlı",
   realtimeReconnecting: "Canlı güncellemeler yeniden bağlanıyor",

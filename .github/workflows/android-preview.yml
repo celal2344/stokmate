@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-preview-${{ github.ref }}
@@ -50,5 +50,71 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build preview APK
+        id: eas_build
         working-directory: apps/mobile
-        run: eas build --platform android --profile preview --non-interactive
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas build --platform android --profile preview --non-interactive --json > eas-build.json
+
+          node <<'NODE'
+          const { appendFileSync, readFileSync } = require('node:fs');
+
+          const result = JSON.parse(readFileSync('eas-build.json', 'utf8'));
+          const build = Array.isArray(result) ? result[0] : result;
+
+          if (!build?.id) {
+            throw new Error('EAS did not return an Android build ID.');
+          }
+
+          appendFileSync(process.env.GITHUB_OUTPUT, `build_id=${build.id}\n`);
+          NODE
+
+      - name: Download preview APK
+        id: apk
+        working-directory: apps/mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas build:download --build-id "${{ steps.eas_build.outputs.build_id }}" --json > eas-download.json
+
+          node <<'NODE'
+          const { copyFileSync, readFileSync } = require('node:fs');
+          const { resolve } = require('node:path');
+
+          const { path } = JSON.parse(readFileSync('eas-download.json', 'utf8'));
+          if (!path) {
+            throw new Error('EAS did not provide a path for the Android APK.');
+          }
+
+          const assetPath = resolve(
+            process.env.GITHUB_WORKSPACE,
+            `StokMate-android-preview-${process.env.GITHUB_RUN_NUMBER}.apk`,
+          );
+          copyFileSync(path, assetPath);
+          process.stdout.write(`apk_path=${assetPath}\n`);
+          require('node:fs').appendFileSync(process.env.GITHUB_OUTPUT, `path=${assetPath}\n`);
+          NODE
+
+      - name: Publish GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK_PATH: ${{ steps.apk.outputs.path }}
+          RELEASE_TAG: android-preview-${{ github.run_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_title="StokMate Android preview #${GITHUB_RUN_NUMBER}"
+          release_notes="Signed internal Android APK produced by EAS Build for ${GITHUB_SHA}."
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$APK_PATH" --clobber
+            gh release edit "$RELEASE_TAG" --title "$release_title" --prerelease --notes "$release_notes"
+          else
+            gh release create "$RELEASE_TAG" "$APK_PATH" \
+              --target "$GITHUB_SHA" \
+              --title "$release_title" \
+              --prerelease \
+              --generate-notes \
+              --notes "$release_notes"
+          fi
